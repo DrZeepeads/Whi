@@ -45,7 +45,7 @@ serve(async (req) => {
     let context = '';
     if (searchResults && searchResults.length > 0) {
       context = searchResults
-        .map((result: any) => `${result.title}: ${result.content}`)
+        .map((result: any) => `${result.source || result.title}: ${result.content}`)
         .join('\n\n');
     }
 

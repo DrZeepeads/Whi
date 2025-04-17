@@ -4,11 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
 
 // Function to send a message and get a response from the Supabase Edge Function
-export const sendMessage = async (message: string): Promise<MessageType> => {
+export const sendMessage = async (message: string, sessionId = 'default'): Promise<MessageType> => {
   try {
     // Call the Supabase Edge Function
     const { data, error } = await supabase.functions.invoke('process-message', {
-      body: { message }
+      body: { message, sessionId }
     });
 
     if (error) {

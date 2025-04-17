@@ -118,7 +118,7 @@ const Chat = () => {
     
     try {
       // Send message to API and get response
-      const botResponse = await sendMessage(text);
+      const botResponse = await sendMessage(text, sessionId);
       setMessages(prev => [...prev, botResponse]);
     } catch (error) {
       console.error("Error sending message:", error);

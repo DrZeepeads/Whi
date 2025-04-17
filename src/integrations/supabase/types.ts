@@ -129,7 +129,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      search_textbook: {
+        Args: { query_text: string; match_count?: number }
+        Returns: {
+          id: string
+          content: string
+          source: string
+          similarity: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
