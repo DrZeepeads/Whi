@@ -8,21 +8,95 @@ import SideMenu from "@/components/SideMenu";
 import LoadingDots from "@/components/LoadingDots";
 import SplashScreen from "@/components/SplashScreen";
 import { sendMessage } from "@/services/api";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/sonner";
+import { v4 as uuidv4 } from "uuid";
 
 const Chat = () => {
-  const [messages, setMessages] = useState<MessageType[]>([
-    {
-      id: "welcome",
-      content: "Welcome to Nelson-GPT! How can I assist with your pediatric medicine questions?",
-      sender: "bot",
-      timestamp: new Date()
-    }
-  ]);
+  const [messages, setMessages] = useState<MessageType[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [sideMenuOpen, setSideMenuOpen] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
+  const [sessionId, setSessionId] = useState<string>("");
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Initialize or retrieve session
+  useEffect(() => {
+    const storedSessionId = localStorage.getItem('chatSessionId');
+    
+    if (storedSessionId) {
+      setSessionId(storedSessionId);
+      loadChatHistory(storedSessionId);
+    } else {
+      // Create a new session
+      const newSessionId = uuidv4();
+      localStorage.setItem('chatSessionId', newSessionId);
+      setSessionId(newSessionId);
+      
+      // Add welcome message for new sessions
+      setMessages([
+        {
+          id: "welcome",
+          content: "Welcome to Nelson-GPT! How can I assist with your pediatric medicine questions?",
+          sender: "bot",
+          timestamp: new Date()
+        }
+      ]);
+    }
+  }, []);
+
+  // Load chat history from Supabase
+  const loadChatHistory = async (sid: string) => {
+    try {
+      setIsLoading(true);
+      
+      const { data, error } = await supabase
+        .from('chat_messages')
+        .select('*')
+        .eq('session_id', sid)
+        .order('timestamp', { ascending: true });
+        
+      if (error) {
+        console.error("Error fetching chat history:", error);
+        toast.error("Failed to load chat history");
+        
+        // Add welcome message as fallback
+        setMessages([
+          {
+            id: "welcome",
+            content: "Welcome back to Nelson-GPT! How can I assist with your pediatric medicine questions?",
+            sender: "bot",
+            timestamp: new Date()
+          }
+        ]);
+      } else if (data && data.length > 0) {
+        // Convert the data to MessageType format
+        const formattedMessages: MessageType[] = data.map(msg => ({
+          id: msg.id,
+          content: msg.content,
+          sender: msg.sender as "user" | "bot",
+          timestamp: new Date(msg.timestamp)
+        }));
+        
+        setMessages(formattedMessages);
+      } else {
+        // No history, add welcome message
+        setMessages([
+          {
+            id: "welcome",
+            content: "Welcome to Nelson-GPT! How can I assist with your pediatric medicine questions?",
+            sender: "bot",
+            timestamp: new Date()
+          }
+        ]);
+      }
+    } catch (error) {
+      console.error("Failed to load chat history:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
