@@ -11,6 +11,7 @@ import { sendMessage } from "@/services/api";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
 import { v4 as uuidv4 } from "uuid";
+import type { Tables } from "@/integrations/supabase/types";
 
 const Chat = () => {
   const [messages, setMessages] = useState<MessageType[]>([]);
@@ -55,7 +56,7 @@ const Chat = () => {
         .from('chat_messages')
         .select('*')
         .eq('session_id', sid)
-        .order('timestamp', { ascending: true });
+        .order('created_at', { ascending: true });
         
       if (error) {
         console.error("Error fetching chat history:", error);
@@ -72,11 +73,11 @@ const Chat = () => {
         ]);
       } else if (data && data.length > 0) {
         // Convert the data to MessageType format
-        const formattedMessages: MessageType[] = data.map(msg => ({
+        const formattedMessages: MessageType[] = data.map((msg: Tables<'chat_messages'>) => ({
           id: msg.id,
           content: msg.content,
-          sender: msg.sender as "user" | "bot",
-          timestamp: new Date(msg.timestamp)
+          sender: msg.role === 'user' ? 'user' : 'bot',
+          timestamp: new Date(msg.created_at || Date.now())
         }));
         
         setMessages(formattedMessages);
