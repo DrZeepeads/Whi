@@ -95,14 +95,14 @@ serve(async (req) => {
         {
           session_id: sessionId,
           content: message,
-          sender: 'user',
-          timestamp: new Date().toISOString()
+          role: 'user',
+          created_at: new Date().toISOString()
         },
         {
           session_id: sessionId,
           content: aiResponse,
-          sender: 'bot',
-          timestamp: new Date().toISOString()
+          role: 'bot',
+          created_at: new Date().toISOString()
         }
       ]);
 
